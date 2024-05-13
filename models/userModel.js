@@ -2,6 +2,8 @@ const mongoose = require('mongoose');
 //const slugify = require('slugify');
 const validator = require('validator');
 
+const bcrypt = require('bcrypt');
+
 //create user schema
 const userSchema = new mongoose.Schema({
   name: {
@@ -29,8 +31,28 @@ const userSchema = new mongoose.Schema({
   confirmPassword: {
     type: String,
     required: [true, 'Please confirm your password'],
-    minlength: 8
+    minlength: 8,
+    validate: {
+      // only works on .create() and .save()
+      validator: function(el) {
+        return el === this.password;
+      },
+      message: 'Passwords are not the same'
+    }
   }
+});
+
+// DOCUMENT middleware: runs before create() and save()
+// used for encrypting
+userSchema.pre('save', async function(next) {
+  // untuk nak check kalau value password tu dah berubah so nnti boleh abaikan jer
+  if (!this.isModified('password')) return next();
+
+  // replace password with hash password
+  this.password = await bcrypt.hash(this.password, 12);
+
+  //delete password confirm field
+  this.confirmPassword = undefined;
 });
 
 // create model of the user schema
