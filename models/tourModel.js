@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
+
 //const validator = require('validator');
 
 // create schema of database
@@ -84,7 +85,7 @@ const tourSchema = new mongoose.Schema(
   },
   {
     toJSON: { virtuals: true },
-    toObjest: { virtuals: true }
+    toObject: { virtuals: true }
   }
 );
 

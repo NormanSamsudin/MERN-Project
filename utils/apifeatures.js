@@ -10,13 +10,13 @@ class APIFeature {
     const excludeFields = ['page', 'sort', 'limit', 'fields'];
     // hanya akan allow duration
     excludeFields.forEach(el => delete queryObj[el]);
-    console.log(this.query, queryObj); // so dia akan  filter based on the parameter query
+    //console.log(this.query, queryObj); // so dia akan  filter based on the parameter query
 
     //Andvance Filtering (greater, less, )
     let queryStr = JSON.stringify(queryObj);
     queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, match => `$${match}`); //regular expression
 
-    console.log(JSON.parse(queryStr));
+    //console.log(JSON.parse(queryStr));
     //let query = Tour.find(JSON.parse(queryStr));
 
     this.query = this.query.find(JSON.parse(queryStr));
@@ -28,7 +28,7 @@ class APIFeature {
     if (this.queryString.sort) {
       // kalau wujud baru die masuk dalam ni
       const sortBy = this.queryString.sort.split(',').join(' '); // nak spit string
-      console.log(sortBy);
+      //console.log(sortBy);
       this.query = this.query.sort(sortBy); //build sort query with spesific sort attribute
     } else {
       this.query = this.query.sort('-createdAt'); //build sort query by default created date

@@ -3,6 +3,99 @@ const APIFeature = require('./../utils/apifeatures');
 const catchAsync = require('./../utils/catchAsync');
 const AppError = require('./../utils/AppError');
 
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Tour:
+ *       type: object
+ *       required:
+ *         - name
+ *         - duration
+ *         - maxGroupSize
+ *         - difficulty
+ *         - price
+ *         - summary
+ *         - imageCover
+ *       properties:
+ *         id:
+ *           type: string
+ *           description: The auto-generated id of the tour
+ *         name:
+ *           type: string
+ *           description: The name of the tour
+ *         slug:
+ *           type: string
+ *           description: The slug for the tour name, typically used in URLs
+ *         duration:
+ *           type: number
+ *           description: The duration of the tour in days
+ *         maxGroupSize:
+ *           type: number
+ *           description: The maximum number of people in the tour group
+ *         difficulty:
+ *           type: string
+ *           description: The difficulty level of the tour
+ *           enum: [easy, medium, difficult]
+ *         ratingsAverage:
+ *           type: number
+ *           description: The average rating of the tour
+ *         ratingsQuality:
+ *           type: number
+ *           description: The quality rating of the tour
+ *         price:
+ *           type: number
+ *           description: The price of the tour
+ *         priceDiscount:
+ *           type: number
+ *           description: The discounted price of the tour
+ *         summary:
+ *           type: string
+ *           description: A brief summary of the tour
+ *         description:
+ *           type: string
+ *           description: A detailed description of the tour
+ *         imageCover:
+ *           type: string
+ *           description: The URL of the cover image for the tour
+ *         images:
+ *           type: array
+ *           items:
+ *             type: string
+ *           description: An array of image URLs for the tour
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *           description: The date when the tour was created
+ *         startDates:
+ *           type: array
+ *           items:
+ *             type: string
+ *             format: date-time
+ *           description: An array of start dates for the tour
+ *         secretTour:
+ *           type: boolean
+ *           description: A flag indicating whether the tour is secret
+ *       example:
+ *         id: 609c5f5b8f1b2b001f3b0f90
+ *         name: The Forest Hiker
+ *         slug: the-forest-hiker
+ *         duration: 5
+ *         maxGroupSize: 25
+ *         difficulty: medium
+ *         ratingsAverage: 4.7
+ *         ratingsQuality: 9
+ *         price: 497
+ *         priceDiscount: 297
+ *         summary: Exciting forest hike with breathtaking views
+ *         description: Detailed description goes here...
+ *         imageCover: tour-5-cover.jpg
+ *         images: [tour-5-1.jpg, tour-5-2.jpg, tour-5-3.jpg]
+ *         createdAt: 2021-05-14T00:00:00.000Z
+ *         startDates: [2021-06-01T00:00:00.000Z, 2021-07-01T00:00:00.000Z]
+ *         secretTour: false
+ */
+
 //middlware for top-5-cheap
 exports.aliasTopTours = (req, res, next) => {
   req.query.limit = '5';

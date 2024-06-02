@@ -2,10 +2,12 @@ const express = require('express');
 const swaggerJsdoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 const morgan = require('morgan');
+
 const AppError = require('./utils/AppError');
 const globalErrorHandler = require('./controllers/errorController');
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
+const setSecureHeaders = require('./controllers/secureController');
 
 // 1) MIDDLEWARE
 const app = express();
@@ -13,25 +15,30 @@ const app = express();
 // 3rd party middleware (http request logger)
 // env variables ni boleh access dekat mana2 file jer
 console.log(process.env.NODE_ENV);
-if (process.env.NODE_ENV === 'developement') {
-  app.use(morgan('dev'));
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev')); //morgan ni guna untuk jadikan die akan print setiap request yang kita buat
 }
 
+// Apply the middleware globally to all routes
+app.use(setSecureHeaders);
 //middleware between request and response
 // mende ni penting kalau tak nnti kita tak dapat transtlate data
 app.use(express.json());
+app.use(express.static(`public`)); // untuk nak serve static file daripada folder public
 
 //  custom midleware sendiri
 // middleware ni kene ada dekat bahagian atas sekali
-app.use((req, res, next) => {
-  console.log('Hello from the middleware!');
-  next(); // go to next stack middleware
-});
+// app.use((req, res, next) => {
+//   console.log('Hello from the middleware!');
+//   next(); // go to next stack middleware
+// });
 
 // custom middleware sendiri
 // nak modify request data
 app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();
+  console.log(req.headers); // nak print headers
+  // de ada beza kalau nak pring headers dgn nak print body
   next(); // go to next stack middleware
 });
 
@@ -56,7 +63,7 @@ const options = {
     },
     servers: [
       {
-        url: 'http://localhost:3000'
+        url: 'http://localhost:8000/api/v1'
       }
     ]
   },
@@ -75,7 +82,6 @@ app.use(
 );
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
-app.use(express.static(`public`)); // untuk nak serve static file daripada folder public
 
 //kalau ada routes yang x trigger route lain yang dekat atas so die akan dikira xde route so response die yang ni
 // sbbtu yang ni kne letak last sekali "*" = all route
