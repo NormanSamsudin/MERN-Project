@@ -55,6 +55,7 @@ exports.updateMe = catchAsync(async (req, res, next) => {
 
 // handler to deactivate account instead of delete user data
 exports.deleteMe = catchAsync(async (req, res, next) => {
+  // nak jadikan user tu deactivate jer
   await User.findByIdAndUpdate(req.user.id, { active: false });
 
   res.status(204).json({

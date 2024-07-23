@@ -9,7 +9,7 @@ const userRouter = express.Router();
 userRouter.post('/signup', authController.signup);
 userRouter.post(
   '/login',
-  authController.secureBruteforce,
+  //authController.secureBruteforce,
   authController.login
 ); //protected from bruteforce attack
 // utk pos email
@@ -25,7 +25,8 @@ userRouter.patch(
 // update user data if the user has logged in
 userRouter.patch('/updateMe', authController.protect, userController.updateMe);
 
-userRouter.patch('/deleteMe', authController.protect, userController.deleteMe);
+//delete user tapi tak delete pon dalam database
+userRouter.delete('/deleteMe', authController.protect, userController.deleteMe);
 
 userRouter
   .route('/')

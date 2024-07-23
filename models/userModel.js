@@ -80,6 +80,13 @@ userSchema.pre('save', function(next) {
   next();
 });
 
+//Document middleware
+// regular expression pattern find
+userSchema.pre(/^find/, function(next) {
+  this.find({ active: { $ne: false } });
+  next();
+});
+
 //instance method: that will be available on any function or ethos
 userSchema.methods.correctPassword = async function(
   candidatePassword, //original password from user

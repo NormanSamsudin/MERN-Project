@@ -1,6 +1,6 @@
 const crypto = require('crypto');
 const { promisify } = require('util');
-const rateLimit = require('express-rate-limit'); //bruteforce protection
+//const rateLimit = require('express-rate-limit'); //bruteforce protection
 const jwt = require('jsonwebtoken');
 const User = require('./../models/userModel');
 const catchAsync = require('./../utils/catchAsync');
@@ -19,6 +19,22 @@ const signToken = id => {
 
 const createSendToken = (user, statusCode, res) => {
   const token = signToken(user._id);
+
+  const cookieOptions = {
+    expires: new Date(
+      Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
+    ),
+    // secure: true, //must use https protocol
+    httpOnly: true
+  };
+
+  // end product jer kita wajibkan pakai https
+  if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
+
+  //create cookie for the client side
+  res.cookie('jwt', token, cookieOptions);
+  // remove the password from the output
+  user.password = undefined;
 
   // 201 for created
   res.status(statusCode).json({
@@ -71,19 +87,19 @@ exports.login = catchAsync(async (req, res, next) => {
 });
 
 //middleware to protect from brute force attacks
-exports.secureBruteforce = rateLimit({
-  windowMs: 5 * 60 * 1000, // 15 minutes
-  max: 5, // Limit each IP to 5 login attempts per windowMs
-  message:
-    'Too many login attempts from this IP, please try again after 15 minutes',
-  handler: (req, res, next, options) => {
-    // Log the IP address
-    console.log(`Too many login attempts from IP: ${req.ip}`);
+// exports.secureBruteforce = rateLimit({
+//   windowMs: 5 * 60 * 1000, // 15 minutes
+//   max: 5, // Limit each IP to 5 login attempts per windowMs
+//   message:
+//     'Too many login attempts from this IP, please try again after 15 minutes',
+//   handler: (req, res, next, options) => {
+//     // Log the IP address
+//     console.log(`Too many login attempts from IP: ${req.ip}`);
 
-    // Respond with the message
-    res.status(options.statusCode).send(options.message);
-  }
-});
+//     // Respond with the message
+//     res.status(options.statusCode).send(options.message);
+//   }
+// });
 
 //middleware to protect routes
 exports.protect = catchAsync(async (req, res, next) => {
