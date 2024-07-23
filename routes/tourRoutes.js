@@ -4,6 +4,7 @@ const tourController = require('./../controllers/tourController');
 
 const authController = require('./../controllers/authController');
 
+const reviewRouter = require('./../routes/reviewRoutes');
 // nak bind
 const tourRouter = express.Router();
 
@@ -253,6 +254,18 @@ const tourRouter = express.Router();
 //param middleware
 //tourRouter.param('id', tourController.checkID);
 
+// tourRouter
+//   .route('/:tourId/reviews')
+//   .post(
+//     authController.protect,
+//     authController.restrictTo('user'),
+//     reviewController.createReview
+//   );
+
+// middleware kalau route tu same so die akan pass dekat router lain
+// mounting router from tour -> review
+tourRouter.use('/:tourId/reviews', reviewRouter);
+
 //bila buat macam ni lagi senang nak baca code
 tourRouter
   .route('/top-5-cheap')
@@ -260,19 +273,33 @@ tourRouter
 
 tourRouter.route('/tour-stats').get(tourController.getTourStats);
 
-tourRouter.route('/monthly-plan/:year').get(tourController.getMonthlyPlan);
+tourRouter
+  .route('/monthly-plan/:year')
+  .get(
+    authController.protect,
+    authController.restrictTo('admin', 'lead-guide', 'guide'),
+    tourController.getMonthlyPlan
+  );
 
 // 1 route (no need to redundant write same routes)
 tourRouter
   .route('/')
-  .get(authController.protect, tourController.getAllTours)
-  .post(tourController.createTour); // kita boleh letak middleware utk spesific path
+  .get(tourController.getAllTours)
+  .post(
+    authController.protect,
+    authController.restrictTo('admin', 'lead-guide'),
+    tourController.createTour
+  ); // kita boleh letak middleware utk spesific path
 
 // 2 route (no need to redundant write same routes)
 tourRouter
   .route('/:id')
   .get(tourController.getTours)
-  .patch(tourController.updateTour)
+  .patch(
+    authController.protect,
+    authController.restrictTo('admin', 'lead-guide'),
+    tourController.updateTour
+  )
   .delete(
     authController.protect,
     authController.restrictTo('admin', 'lead-guide'),

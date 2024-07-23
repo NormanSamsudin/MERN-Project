@@ -11,7 +11,9 @@ const AppError = require('./utils/AppError');
 const globalErrorHandler = require('./controllers/errorController');
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
-const geminiRouter = require('./routes/geminiRouter');
+const geminiRouter = require('./routes/geminiRoutes');
+const reviewRouter = require('./routes/reviewRoutes');
+const shellRouter = require('./routes/shellRoutes');
 const setSecureHeaders = require('./controllers/secureController');
 
 // 1) GLOBAL MIDDLEWARE
@@ -27,7 +29,7 @@ if (process.env.NODE_ENV === 'development') {
 
 const limiter = rateLimit({
   windowMs: 5 * 60 * 1000, // 15 minutes
-  max: 5, // Limit each IP to 5 login attempts per windowMs
+  max: 90000000000000000000000000, // Limit each IP to 5 login attempts per windowMs
   message:
     'Too many login attempts from this IP, please try again after 15 minutes',
   handler: (req, res, next, options) => {
@@ -68,7 +70,7 @@ app.use(setSecureHeaders);
 // mende ni penting kalau tak nnti kita tak dapat transtlate data
 //body parser, reading data from body into req.body
 app.use(express.json({ limit: '10kb' })); // only limited to body with 10kb
-app.use(express.static(`public`)); // untuk nak serve static file daripada folder public
+app.use(express.static('public')); // untuk nak serve static file daripada folder public
 
 //  custom midleware sendiri
 // middleware ni kene ada dekat bahagian atas sekali
@@ -115,6 +117,7 @@ const options = {
 };
 
 const specs = swaggerJsdoc(options);
+
 app.use(
   '/api-docs',
   swaggerUi.serve,
@@ -124,9 +127,12 @@ app.use(
       'https://cdn.jsdelivr.net/npm/swagger-ui-themes@3.0.0/themes/3.x/theme-newspaper.css'
   })
 );
+
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/gemini', geminiRouter);
+app.use('/api/v1/reviews', reviewRouter);
+app.use('/api/v1/shell', shellRouter);
 
 //kalau ada routes yang x trigger route lain yang dekat atas so die akan dikira xde route so response die yang ni
 // sbbtu yang ni kne letak last sekali "*" = all route

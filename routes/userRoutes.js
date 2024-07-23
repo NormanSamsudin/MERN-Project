@@ -16,17 +16,27 @@ userRouter.post(
 userRouter.post('/forgotPassword', authController.forgotPassword);
 //recieve token and set new password
 userRouter.patch('/resetPassword/:token', authController.resetPassword); //unprotected from bruteforce attack
+
+//protect all routes after this middleware is called
+userRouter.use(authController.protect);
+
 // change password if the user loggedin
 userRouter.patch(
   '/updateMyPassword',
-  authController.protect, // kne ada authorization dlu
+
   authController.updatePassword
 );
+userRouter.get('/me', userController.getMe, userController.getUser);
+
 // update user data if the user has logged in
-userRouter.patch('/updateMe', authController.protect, userController.updateMe);
+userRouter.patch('/updateMe', userController.updateMe);
 
 //delete user tapi tak delete pon dalam database
-userRouter.delete('/deleteMe', authController.protect, userController.deleteMe);
+// walaupon method die delete
+userRouter.delete('/deleteMe', userController.deleteMe);
+
+// only blow router got effected
+userRouter.use(authController.restrictTo('admin'));
 
 userRouter
   .route('/')
@@ -36,7 +46,7 @@ userRouter
 userRouter
   .route('/:id')
   .get(userController.getUser)
-  .patch(userController.updateUser)
+  .patch(userController.updateUser) // if user is not log in
   .delete(userController.deleteUser);
 
 module.exports = userRouter;

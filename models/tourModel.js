@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
+// const User = require('../models/userModel');
 
 //const validator = require('validator');
 
@@ -39,7 +40,7 @@ const tourSchema = new mongoose.Schema(
       min: [1, 'Rating must be above 1.0'],
       max: [5, 'Rating must be below 5.0']
     },
-    ratingsQuality: {
+    ratingsQuantity: {
       type: Number,
       default: 0
     },
@@ -104,18 +105,44 @@ const tourSchema = new mongoose.Schema(
         description: String,
         day: Number
       }
+    ],
+    // referencing document based on userid
+    guides: [
+      {
+        type: mongoose.Schema.ObjectId,
+        ref: 'User'
+      }
     ]
+    // tak nak pakai child referencing ganti dengan virtual populate
+    // reviews: [
+    //   {
+    //     type: mongoose.Schema.ObjectId,
+    //     ref: 'Review'
+    //   }
+    // ]
   },
+  // virtual property something ike not stored in the database but being manipulated by other fields
   {
     toJSON: { virtuals: true },
     toObject: { virtuals: true }
   }
 );
 
+//set index by ascending order
+tourSchema.index({ price: 1, ratingsAverge: -1 });
+tourSchema.index({ slug: 1 });
 //define virtual property ( utk nak elak simpan bende yang sama cuma beza unit )
 // nnti kalau kita buat request data pon die akan ada jgk dalam response
 tourSchema.virtual('durationWeeks').get(function() {
   return this.duration / 7;
+});
+
+//virtual + populate
+// die x sama macam virtual field yang biasa
+tourSchema.virtual('reviews', {
+  ref: 'Review',
+  foreignField: 'tour',
+  localField: '_id'
 });
 
 //DOCUMENT middleware: runs before create() and save()
@@ -124,6 +151,15 @@ tourSchema.pre('save', function(next) {
   this.slug = slugify(this.name, { lower: true });
   next();
 });
+
+//DOCUMENT middleware: runs before create() and save() to make Embeded
+// tourSchema.pre('save', async function(next) {
+//   const guidesPromisses = this.guides.map(id => User.findById(id));
+
+//   // change value value array of guides
+//   this.guides = await Promise.all(guidesPromisses); //  waits for all promises in guidesPromises to resolve.
+//   next();
+// });
 
 //DOCUMENT middleware: runs before create() and save() wont trigger for update and delete,
 tourSchema.pre('save', function(next) {
@@ -144,6 +180,15 @@ tourSchema.pre(/^find/, function(next) {
   // will trigger find, findOne, findOneAndDelete, findOneAndRemove, findOneAndUpdate
   this.find({ secretTour: { $ne: true } });
   this.start = Date.now();
+  next();
+});
+
+//QUERY Middleware to achieve referencing
+tourSchema.pre(/^find/, function(next) {
+  this.populate({
+    path: 'guides',
+    select: '-__v -passwordChangedAt'
+  });
   next();
 });
 

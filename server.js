@@ -1,6 +1,8 @@
 //server file where everything is started
 const mongoose = require('mongoose');
 const dotenv = require('dotenv'); // pakai package env utk mudah access environmanet variables
+//const http = require('http');
+const ngrok = require('@ngrok/ngrok');
 
 // kalau ada exception yang uncaught
 process.on('uncaughtException', err => {
@@ -70,6 +72,24 @@ const port = process.env.PORT || 3000;
 const server = app.listen(port, () => {
   console.log(`App running on port ${port}...`);
 });
+
+//////////////////////
+
+// Initialize ngrok once the server starts
+
+ngrok
+  .connect({ addr: port, authtoken_from_env: true })
+  .then(listener => console.log(`Ingress established at: ${listener.url()}`))
+  .catch(error => console.log('Error connecting ngrok:', error));
+
+// process.on('unhandledRejection', err => {
+//   console.log('UNHANDLED REJECTION! 💥 Shutting down...');
+//   console.log(err.name, err.message);
+//   server.close(() => {
+//     process.exit(1);
+//   });
+// });
+/////////////////
 
 // kalau macam database punya password salah tu nnti akan error
 process.on('unhandledRejection', err => {

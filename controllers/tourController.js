@@ -1,8 +1,7 @@
 const Tour = require('./../models/tourModel');
-const APIFeature = require('./../utils/apifeatures');
 const catchAsync = require('./../utils/catchAsync');
-const AppError = require('./../utils/AppError');
-
+//const AppError = require('./../utils/AppError');
+const factory = require('./handlerFactory');
 /**
  * @swagger
  * components:
@@ -112,90 +111,13 @@ exports.aliasTopTours = (req, res, next) => {
 // };
 
 //handler routes
-exports.createTour = catchAsync(async (req, res, next) => {
-  const newTour = await Tour.create(req.body);
-  res.status(201).json({
-    status: 'success',
-    data: {
-      tour: newTour
-    }
-  });
-});
-
-//handler
-exports.getAllTours = catchAsync(async (req, res, next) => {
-  //Build Query
-  const features = new APIFeature(Tour.find(), req.query)
-    .filter()
-    .sort()
-    .limitFields()
-    .paginate();
-
-  // Execute Query
-  const tours = await features.query;
-
-  //Send Response
-  res.status(200).json({
-    status: 'OK',
-    result: this.getTours.length,
-    data: {
-      tours
-    }
-  });
-});
-
-exports.getTours = catchAsync(async (req, res, next) => {
-  const tour = await Tour.findById(req.params.id);
-
-  //implement 404 not found error
-  if (!tour) {
-    // kalau error nnti die akan trigger dekat middleware
-    return next(new AppError('No tour found with that ID', 404));
-  }
-
-  res.status(200).json({
-    status: 'OK',
-    result: tour.length,
-    data: {
-      tour
-    }
-  });
-});
-
-exports.updateTour = catchAsync(async (req, res, next) => {
-  const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
-    new: true,
-    runValidators: true
-  });
-
-  //implement 404 not found error
-  if (!tour) {
-    // kalau error nnti die akan trigger dekat middleware
-    return next(new AppError('No tour found with that ID', 404));
-  }
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      tour
-    }
-  });
-});
-
-exports.deleteTour = catchAsync(async (req, res, next) => {
-  const tour = await Tour.findByIdAndDelete(req.params.id);
-
-  //implement 404 not found error
-  if (!tour) {
-    // kalau error nnti die akan trigger dekat middleware
-    return next(new AppError('No tour found with that ID', 404));
-  }
-
-  res.status(200).json({
-    status: 'success',
-    message: 'Tour deleted successfully'
-  });
-});
+// the factory need to be made by our own
+// avoid redundant delete method for different model
+exports.createTour = factory.createOne(Tour);
+exports.getAllTours = factory.getAll(Tour);
+exports.getTours = factory.getOne(Tour, { path: 'reviews' });
+exports.updateTour = factory.updateOne(Tour);
+exports.deleteTour = factory.deleteOne(Tour);
 
 // handler for get tour stats
 // involve with the aggregationpipeline service

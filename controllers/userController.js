@@ -1,6 +1,7 @@
 const catchAsync = require('./../utils/catchAsync');
 const User = require('./../models/userModel');
 const AppError = require('./../utils/AppError');
+const factory = require('./handlerFactory');
 
 // nak filter POSTed request body daripada sensitive datafield in database such as {name, email}
 const filterObj = (obj, ...allowedFields) => {
@@ -11,19 +12,10 @@ const filterObj = (obj, ...allowedFields) => {
   return newObj;
 };
 
-exports.getAllUsers = catchAsync(async (req, res) => {
-  // Execute Query
-  const users = await User.find();
-
-  //Send Response
-  res.status(200).json({
-    status: 'OK',
-    result: users.length,
-    data: {
-      users
-    }
-  });
-});
+exports.getMe = (req, res, next) => {
+  req.params.id = req.user.id;
+  next();
+};
 
 exports.updateMe = catchAsync(async (req, res, next) => {
   //1) create error if user post password data
@@ -54,6 +46,7 @@ exports.updateMe = catchAsync(async (req, res, next) => {
 });
 
 // handler to deactivate account instead of delete user data
+// not actually delete the data
 exports.deleteMe = catchAsync(async (req, res, next) => {
   // nak jadikan user tu deactivate jer
   await User.findByIdAndUpdate(req.user.id, { active: false });
@@ -64,30 +57,17 @@ exports.deleteMe = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.getUser = (req, res) => {
-  res.status(500).json({
-    status: 'success',
-    message: 'This route is not yet defined'
-  });
-};
-
 exports.createUser = (req, res) => {
   res.status(500).json({
     status: 'success',
-    message: 'This route is not yet defined'
+    message: 'This route is not yet defined! Please use /signup instead'
   });
 };
 
-exports.updateUser = (req, res) => {
-  res.status(500).json({
-    status: 'success',
-    message: 'This route is not yet defined'
-  });
-};
-
-exports.deleteUser = (req, res) => {
-  res.status(500).json({
-    status: 'success',
-    message: 'This route is not yet defined'
-  });
-};
+// avoid redundant code by using factory
+exports.getAllUsers = factory.getAll(User);
+exports.getUser = factory.getOne(User);
+// Do not update password with this
+exports.updateUser = factory.updateOne(User);
+//delete user by administrator will be permanently deleted
+exports.deleteUser = factory.deleteOne(User);
