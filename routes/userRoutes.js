@@ -29,7 +29,11 @@ userRouter.patch(
 userRouter.get('/me', userController.getMe, userController.getUser);
 
 // update user data if the user has logged in
-userRouter.patch('/updateMe', userController.updateMe);
+userRouter.patch(
+  '/updateMe',
+  userController.uploadUserPhoto,
+  userController.updateMe
+);
 
 //delete user tapi tak delete pon dalam database
 // walaupon method die delete
