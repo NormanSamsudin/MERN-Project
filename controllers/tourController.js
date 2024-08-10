@@ -1,7 +1,10 @@
+const multer = require('multer');
+const sharp = require('sharp');
 const Tour = require('./../models/tourModel');
 const catchAsync = require('./../utils/catchAsync');
 //const AppError = require('./../utils/AppError');
 const factory = require('./handlerFactory');
+const AppError = require('../utils/AppError');
 /**
  * @swagger
  * components:
@@ -94,6 +97,63 @@ const factory = require('./handlerFactory');
  *         startDates: [2021-06-01T00:00:00.000Z, 2021-07-01T00:00:00.000Z]
  *         secretTour: false
  */
+// image will be store as buffer
+const multerStorage = multer.memoryStorage();
+
+const multerFilter = (req, file, cb) => {
+  if (file.mimetype.startsWith('image')) {
+    cb(null, true);
+  } else {
+    cb(new AppError('Not an image! Please upload an image.', 400), false);
+  }
+};
+
+const upload = multer({ storage: multerStorage, fileFilter: multerFilter });
+
+exports.uploadTourImages = upload.fields([
+  {
+    name: 'imageCover',
+    maxCount: 1
+  },
+  {
+    name: 'images',
+    maxCount: 3
+  }
+]);
+
+exports.resizeTourImages = catchAsync(async (req, res, next) => {
+  // image tu akan represent dalam bentuk buffer
+  console.log(req.files);
+
+  if (!req.files.imageCover || !req.files.images) return next();
+
+  //1) cover image
+  req.body.imageCover = `tour-${req.params.id}-${Date.now()}-cover.jpeg`;
+  await sharp(req.files.imageCover[0].buffer)
+    .resize(2000, 1333)
+    .toFormat('jpeg')
+    .jpeg({ quality: 90 })
+    .toFile(`public/img/tours/${req.body.imageCover}`);
+
+  //2) images
+  req.body.images = [];
+  // kene pakai map sbb nak kasi die bole execute dlu
+  await Promise.all(
+    req.files.images.map(async (file, i) => {
+      const filename = `tour-${req.params.id}-${Date.now()}-${i + 1}.jpeg`;
+
+      await sharp(file.buffer)
+        .resize(2000, 1333)
+        .toFormat('jpeg')
+        .jpeg({ quality: 90 })
+        .toFile(`public/img/tours/${filename}`);
+
+      req.body.images.push(filename);
+    })
+  );
+
+  next();
+});
 
 //middlware for top-5-cheap
 exports.aliasTopTours = (req, res, next) => {
