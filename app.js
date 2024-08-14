@@ -1,3 +1,4 @@
+const path = require('path');
 const express = require('express');
 const swaggerJsdoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
@@ -18,6 +19,10 @@ const setSecureHeaders = require('./controllers/secureController');
 
 // 1) GLOBAL MIDDLEWARE
 const app = express();
+
+app.set('view engine', 'pug');
+app.set('views', path.join(__dirname, 'views'));
+
 // securityhttp headers
 app.use(helmet());
 // 3rd party middleware (http request logger)
